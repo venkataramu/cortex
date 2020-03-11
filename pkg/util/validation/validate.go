@@ -88,6 +88,18 @@ type LabelValidationConfig interface {
 	MaxLabelValueLength(userID string) int
 }
 
+func IsValidMetricName(n string) bool{
+	if len(n) == 0 {
+		return false
+	}
+	for i, b := range n {
+		if !((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || b == '_' || b == ':' || b== '.' || (b >= '0' && b <= '9' && i > 0)) {
+			return false
+		}
+	}
+	return true
+}
+
 // ValidateLabels returns an err if the labels are invalid.
 func ValidateLabels(cfg LabelValidationConfig, userID string, ls []client.LabelAdapter) error {
 	metricName, err := extract.MetricNameFromLabelAdapters(ls)
@@ -96,7 +108,7 @@ func ValidateLabels(cfg LabelValidationConfig, userID string, ls []client.LabelA
 			return httpgrpc.Errorf(http.StatusBadRequest, errMissingMetricName)
 		}
 
-		if !model.IsValidMetricName(model.LabelValue(metricName)) {
+		if !IsValidMetricName(metricName) {
 			return httpgrpc.Errorf(http.StatusBadRequest, errInvalidMetricName, metricName)
 		}
 	}
